@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Recipe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +19,8 @@ class HomeController extends AbstractController
       // dd($request->query->get('nom'));
       // dd($request);
 
-      return new Response("Hello ".$request->query->get('nom','Mystique!!!'));
+      // return new Response("Hello ".$request->query->get('nom','Mystique!!!'));
+      return $this->render('home/index.html.twig');
    }
+   
 }

@@ -14,13 +14,13 @@
         {% endblock %}
     </head>
     <body>
-    <nav class="navbar navbar-expend-md navbar-dark bg-dark">
-    <div class="container-fluid">
-    <a class="navbar-brand" href="#">RecetteVie</a>
-    </div>
-    </nav>
+    {{include('/layouts/partials/_nav.html.twig')}}
     <div class = "container my-4">
+    {{include('/layouts/partials/_flash.html.twig')}}
         {% block body %}{% endblock %}
         </div>
     </body>
+    <footer>
+     {{include('/layouts/partials/_footer.html.twig')}}
+    </footer>
 </html>
