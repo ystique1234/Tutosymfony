@@ -1,0 +1,42 @@
+recipeForm.title: Titre
+recipeForm.content: Description
+recipeForm.imageName: "Lien de l'image"
+recipeForm.duration: 'Durée en minutes'
+recipeForm.save: Envoyer
+navBar.home: Accueil
+navBar.recipes: 'Listes des recettes'
+navBar.addRecipe: 'Ajouter une recette'
+navBar.account: 'Mon compte'
+navBar.signUp: "S'enregister"
+navBar.logout: ' Se deconnecter'
+navBar.login: 'se connecter'
+Submitted: ' publiée'
+By: ' par '
+registerForm.firstname: Prénom
+registerForm.lastname: Nom
+registerForm.email: 'Adresse élécronique'
+Password: 'Mot de passe'
+registerForm.agreeTerms: 'Accepter les termes'
+registerForm.titleOnglet: Inscription
+registerForm.title: Inscription
+registerForm.submit: "S'enregistrer"
+'Your email adress is not verified': "Votre adresse email n'est pas vérfiée."
+'You must confirm your email to edit Recipe !': 'Vous devez confirmer votre email pour modifier la recette !'
+'You must login to edit Recipe !': 'Vous devez vous connecter pour modifier la recette !'
+'You must confirm your email to create Recipe !': 'Vous devez confirmer votre email pour créer une recette !'
+'You must login to create Recipe !': 'Vous devez vous connecter pour créer une recette !'
+'You must login to delete Recipe !': 'Vous devez vous connecter pour supprimer la recette !'
+'Forgot Password?': 'Mot de passe oublié?'
+'Sign in': 'Se connecter'
+'Not registred yet?': 'Pas encore inscrit ?'
+'Create an account': 'Créer un compte'
+'Please sign in': 'Veuillez vous connecter'
+Email: E-mail
+acountShow.profile: 'Mon compte'
+accountShow.AccountCreatedat: 'Date de création du compte'
+accountShow.EditAccount: 'Modifier mon compte'
+'Account successfuly updated !': 'Compte mis à jour avec succès !'
+'Update Profile': 'Mettre à jour le profil'
+'Apply changes': 'Appliquer les modifications'
+userForm.firstname: Prénom
+userForm.lastname: Nom

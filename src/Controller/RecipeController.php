@@ -4,14 +4,18 @@ namespace App\Controller;
 
 use App\Entity\Recipe;
 use App\Form\RecipeType;
+use App\Form\SearchType;
+use App\Model\SearchData;
 use App\Repository\RecipeRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class RecipeController extends AbstractController
 {
@@ -27,14 +31,49 @@ class RecipeController extends AbstractController
 
     #[Route(path: '/recette', name: 'app_recipe_index')]
     // public function index(Request $request, RecipeRepository $repository, EntityManagerInterface $em): Response
-    public function index(Request $request, EntityManagerInterface $em): Response
+    public function index(PaginatorInterface $paginator, Request $request, EntityManagerInterface $em, TranslatorInterface $translator, RecipeRepository $repo): Response
     {
+        if ($this->getUser()){ 
+            if (!$this->getUser()->isVerified()){
+                $this->addFlash('info', $translator->trans('Your email adress is not verified'));
+            }
+        }
         // return new Response("Bienvenue dans la page des recettes!!!");
         // Recuperation des recettes en bd
         // ca nous cree une liste de rectte qu'il recupere en bd
         // $recipes = $repository->findAll();(avec la premiere version)
         // la 2 eme version
-        $recipes = $em->getRepository(Recipe::class)->findAll();
+        $data = $em->getRepository(Recipe::class)->findAll();
+        // pagination
+        $recipes = $paginator->paginate(
+            $data,
+            $request->query->getInt('page',1),
+            3
+        );
+
+        // barre de recherche
+        $search = false;
+        $searchData = new SearchData();
+        $form = $this->createForm(SearchType::class, $searchData);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()){
+            // dd($searchData);
+            $searchData->page = $request->query->getInt('page', 1);
+            $recipes = $paginator->paginate(
+                $repo->findBySearch($searchData),
+                $request->query->get('page', 1),
+                3
+            );
+            
+             
+            $search = true;
+            return $this->render('recipe/index.html.twig', [
+                'form' => $form,
+                'recipes' => $recipes,
+                'search' => $search,
+                'searchData' => $searchData->query,
+            ]);
+        }
         // permet de recuperer toutes les recettes en dessous d'une durée en BD
         // $recipes =$repository->findRecipeDurationLowerThan(60);
         // dd($recipes);
@@ -98,7 +137,12 @@ class RecipeController extends AbstractController
         // $em->flush();
         // $em->remove($recipes[5]);
         // $em->flush();
-        return $this->render('recipe/index.html.twig',['recipes'=>$recipes]);
+        return $this->render('recipe/index.html.twig',[
+            'form' => $form->createView(),
+            'recipes'=>$recipes,
+            'search'=> $search
+        ]);
+            
     }
 
     #[Route(path: '/recette/{slug}-{id}', name: 'app_recipe_show', requirements : ['id'=> '\d+', 'slug'=> '[a-z0-9-]+'])]
@@ -137,8 +181,21 @@ class RecipeController extends AbstractController
     } 
  
     #[Route(path: '/recette/{id}/edit', name: 'app_recipe_edit')]
-    public function edit(Recipe $recipe,Request $request,EntityManagerInterface $em):Response
+    public function edit(Recipe $recipe,Request $request,EntityManagerInterface $em,TranslatorInterface $translator):Response
     {
+        if ($this->getUser()){
+            if (!$this->getUser()->isVerified()){
+                $this->addFlash('error', $translator->trans('You must confirm your email to edit Recipe !'));
+                return $this->redirectToRoute('app_recipe_index');    
+            }else if ($recipe->getUser()->getEmail() !== $this->getUser()->getEmail()) {
+                $this->addFlash('error',$translator->trans('You must to be the user'.$recipe->getUser()->getEmail().'to edit this Recipe !'));
+                return $this->redirectToRoute('app_recipe_index');
+            }
+        }else{
+            $this->addFlash('error', $translator->trans('You must login to edit Recipe !'));
+            return $this->redirectToRoute('app_login');
+        }
+        
         // dd($recipe);
         // cette methode prend en premier parametre le formulaire que l'on souhaite utilkiser
         // en second parametre elle prend les données
@@ -163,11 +220,21 @@ class RecipeController extends AbstractController
     
     }
     #[Route(path: '/recette/create', name: 'app_recipe_create')]
-    public function create(Request $request,EntityManagerInterface $em):Response{
+    public function create(Request $request,EntityManagerInterface $em,TranslatorInterface $translator):Response{
+        if ($this->getUser()){
+            if (!$this->getUser()->isVerified()){
+                $this->addFlash('error',$translator->trans ('You must confirm your email to create Recipe !'));
+                return $this->redirectToRoute('app_recipe_index');
+            }
+        }else{
+            $this->addFlash('error', $translator->trans('You must login to create Recipe !'));
+            return $this->redirectToRoute('app_login');
+        }
         $recipe = new Recipe;
         $form = $this->createForm(RecipeType::class,$recipe);
         $form->handleRequest($request);
         if ($form->isSubmitted()&& $form->isValid()){
+            $recipe->setUser($this->getUser());
             $recipe->setCreatedAt(new DateTimeImmutable());
             $recipe->setUpdatedAt(new DateTimeImmutable());
             $em->persist($recipe);
@@ -181,7 +248,20 @@ class RecipeController extends AbstractController
 
 }
 #[Route(path: '/recette/{id}/delete', name: 'app_recipe_delete')]
-    public function delete(Recipe $recipe,EntityManagerInterface $em):Response{
+    public function delete(Recipe $recipe,EntityManagerInterface $em,TranslatorInterface $translator):Response{
+
+        if ($this->getUser()){
+            if (!$this->getUser()->isVerified()){
+                $this->addFlash('error', 'You must confirm your email to delete Recipe !');
+                return $this->redirectToRoute('app_recipe_index');
+            }else if ($recipe->getUser()->getEmail() !== $this->getUser()->getEmail()) {
+                $this->addFlash('error',$translator->trans('You must to be the user'.$recipe->getUser()->getEmail().'to delete this Recipe !'));
+                return $this->redirectToRoute('app_recipe_index');
+            }
+        }else{
+            $this->addFlash('error', $translator->trans('You must login to delete Recipe !'));
+            return $this->redirectToRoute('app_login');
+        }
         $titre = $recipe->getTitle();
         $em->remove($recipe);
         $em->flush();
